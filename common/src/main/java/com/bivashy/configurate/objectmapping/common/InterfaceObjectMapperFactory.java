@@ -29,6 +29,10 @@ public class InterfaceObjectMapperFactory implements Factory, TypeSerializer<Obj
     private static final String CLASS_KEY = "__class__";
     private final Factory delegate;
 
+    public InterfaceObjectMapperFactory() {
+        this(ObjectMapper.factoryBuilder());
+    }
+
     public InterfaceObjectMapperFactory(Builder builder) {
         this.delegate = builder
                 .addNodeResolver(NodeResolvers.nodeKey())
