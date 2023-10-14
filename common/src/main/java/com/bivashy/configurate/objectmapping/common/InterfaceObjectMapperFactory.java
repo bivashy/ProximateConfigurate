@@ -87,7 +87,24 @@ public class InterfaceObjectMapperFactory implements Factory, TypeSerializer<Obj
 
     @Override
     public void serialize(Type type, @Nullable Object obj, ConfigurationNode node) throws SerializationException {
-        delegate.asTypeSerializer().serialize(type, obj, node);
+        if (obj == null) {
+            final ConfigurationNode clazz = node.node(CLASS_KEY);
+            node.set(null);
+            if (!clazz.virtual()) {
+                node.node(CLASS_KEY).set(clazz);
+            }
+            return;
+        }
+        final Class<?> rawType = erase(type);
+        final ObjectMapper<?> mapper;
+        if (!rawType.isInterface() && Modifier.isAbstract(rawType.getModifiers())) {
+            // serialize obj's concrete type rather than the interface/abstract class
+            node.node(CLASS_KEY).set(obj.getClass().getName());
+            mapper = get(obj.getClass());
+        } else {
+            mapper = get(type);
+        }
+        ((ObjectMapper<Object>) mapper).save(obj, node);
     }
 
 }
