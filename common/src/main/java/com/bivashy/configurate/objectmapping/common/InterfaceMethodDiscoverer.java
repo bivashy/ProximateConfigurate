@@ -4,13 +4,18 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
 import org.spongepowered.configurate.serialize.SerializationException;
 
+import com.bivashy.configurate.objectmapping.meta.Transient;
 import com.bivashy.configurate.objectmapping.proxy.ProxyMethodFilter;
 import com.bivashy.configurate.objectmapping.proxy.ProxyMethodInvoker;
 
@@ -51,8 +56,16 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
         if (!clazz.isInterface())
             return null;
 
-        final Method[] methods = clazz.getDeclaredMethods();
-        for (Method method : methods) {
+        collectMethods(target, collector);
+        for (AnnotatedType superType : getInterfaces(target, clazz)) {
+            collectMethods(superType, collector);
+        }
+
+        return new ProxyInstanceFactory(clazz, invokers);
+    }
+
+    private <V> void collectMethods(AnnotatedType type, final FieldCollector<Map<String, Object>, V> collector) {
+        for (Method method : GenericTypeReflector.erase(type.getType()).getDeclaredMethods()) {
             final String name = method.getName();
 
             if (shouldBeIgnored(method))
@@ -62,8 +75,14 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
             final ProxyMethodSerializer<V> methodSerializer = new ProxyMethodSerializer<>(method, name);
             collector.accept(name, returnType, method, methodSerializer, methodSerializer);
         }
+    }
 
-        return new ProxyInstanceFactory(clazz, invokers);
+    private List<AnnotatedType> getInterfaces(AnnotatedType parentType, Type type) {
+        Class<?>[] interfaces = GenericTypeReflector.erase(type).getInterfaces();
+        return Stream.of(interfaces)
+                .map(interfaceType -> GenericTypeReflector.getExactSuperType(parentType, interfaceType))
+                .flatMap(superType -> Stream.concat(Stream.of(superType), getInterfaces(parentType, superType.getType()).stream()))
+                .collect(Collectors.toList());
     }
 
     private boolean shouldBeIgnored(Method method) {
