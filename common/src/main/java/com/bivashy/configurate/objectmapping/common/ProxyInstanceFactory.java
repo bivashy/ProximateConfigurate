@@ -45,7 +45,7 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
 
             if (invocationResult.isPresent()) {
                 return invocationResult.get();
-            } else if (method.isDefault()) {
+            } else if (intermediateValue == null && method.isDefault()) {
                 return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, method, args);
             }
 
