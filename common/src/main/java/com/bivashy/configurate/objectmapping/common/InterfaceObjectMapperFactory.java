@@ -4,7 +4,6 @@ import static io.leangen.geantyref.GenericTypeReflector.erase;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.function.Predicate;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -25,7 +24,6 @@ import io.leangen.geantyref.GenericTypeReflector;
 
 public class InterfaceObjectMapperFactory implements Factory, TypeSerializer<Object> {
 
-    public static final Predicate<Type> IS_ANNOTATED_TARGET = (type) -> GenericTypeReflector.annotate(type).isAnnotationPresent(ConfigInterface.class);
     private static final String CLASS_KEY = "__class__";
     private final Factory delegate;
 
@@ -43,6 +41,10 @@ public class InterfaceObjectMapperFactory implements Factory, TypeSerializer<Obj
                 .addConstraint(Required.class, Constraints.required())
                 .addDiscoverer(InterfaceMethodDiscoverer.INSTANCE)
                 .build();
+    }
+
+    public static boolean applicable(Type type) {
+        return GenericTypeReflector.annotate(type).isAnnotationPresent(ConfigInterface.class);
     }
 
     @Override
