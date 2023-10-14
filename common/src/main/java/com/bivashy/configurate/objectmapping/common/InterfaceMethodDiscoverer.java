@@ -32,16 +32,15 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
     }
 
     public static Builder defaultBuilder() {
-        return builder().reverseFilter(Method::isSynthetic).reverseFilter(method -> Modifier.isStatic(method.getModifiers())).filter(method -> {
-            if (method.isDefault())
-                return method.getAnnotations().length != 0;
-            return true;
-        }).filter(method -> {
-            if (method.getParameterCount() != 0 && !method.isDefault())
-                throw new SerializationException(method.getDeclaringClass(),
-                        "Interface methods should not have parameters. Invalid method is '" + method.toGenericString() + "'");
-            return true;
-        });
+        return builder().reverseFilter(Method::isSynthetic)
+                .reverseFilter(method -> Modifier.isStatic(method.getModifiers()))
+                .filter(method -> !method.isDefault() || !method.isAnnotationPresent(Transient.class))
+                .filter(method -> {
+                    if (method.getParameterCount() != 0 && !method.isDefault())
+                        throw new SerializationException(method.getDeclaringClass(),
+                                "Interface methods should not have parameters: '" + method.toGenericString() + "'");
+                    return true;
+                });
     }
 
     @Override
