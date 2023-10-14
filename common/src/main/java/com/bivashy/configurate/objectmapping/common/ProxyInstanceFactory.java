@@ -1,5 +1,7 @@
 package com.bivashy.configurate.objectmapping.common;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,21 +30,9 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
 
     @Override
     public Object complete(Map<String, Object> intermediate) {
-        return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, (proxy, method, args) -> {
+        return createProxy((proxy, method, args) -> {
             Object intermediateValue = intermediate.get(method.getName());
-
-            Optional<Object> invocationResult = invokers.stream()
-                    .map(invoker -> {
-                        try {
-                            return invoker.invoke(proxy, method, args, intermediate.get(method.getName()));
-                        } catch (ReflectiveOperationException e) {
-                            e.printStackTrace();
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .findFirst();
-
+            Optional<Object> invocationResult = chooseInvocationResult(proxy, method, args, intermediateValue);
             if (invocationResult.isPresent()) {
                 return invocationResult.get();
             } else if (intermediateValue == null && method.isDefault()) {
@@ -56,6 +46,24 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
     @Override
     public boolean canCreateInstances() {
         return true;
+    }
+
+    private Object createProxy(InvocationHandler invocationHandler) {
+        return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, invocationHandler);
+    }
+
+    private Optional<Object> chooseInvocationResult(Object proxy, Method method, Object[] args, Object intermediateValue) {
+        return invokers.stream()
+                .map(invoker -> {
+                    try {
+                        return invoker.invoke(proxy, method, args, intermediateValue);
+                    } catch (ReflectiveOperationException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .findFirst();
     }
 
 }
