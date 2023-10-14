@@ -71,7 +71,7 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
             if (shouldBeIgnored(method))
                 continue;
 
-            final AnnotatedType returnType = method.getAnnotatedReturnType();
+            final AnnotatedType returnType = GenericTypeReflector.getReturnType(method, type);
             final ProxyMethodSerializer<V> methodSerializer = new ProxyMethodSerializer<>(method, name);
             collector.accept(name, returnType, method, methodSerializer, methodSerializer);
         }
