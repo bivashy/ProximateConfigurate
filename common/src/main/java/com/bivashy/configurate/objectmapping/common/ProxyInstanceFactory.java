@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.spongepowered.configurate.objectmapping.FieldDiscoverer.InstanceFactory;
+import org.spongepowered.configurate.util.Types;
 
 import com.bivashy.configurate.objectmapping.proxy.ProxyMethodInvoker;
 
@@ -38,6 +39,9 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
             } else if (intermediateValue == null && method.isDefault()) {
                 return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, method, args);
             }
+
+            if(intermediateValue == null && method.getReturnType().isPrimitive())
+                return intermediate.computeIfAbsent(method.getName(), (ignored) -> Types.defaultValue(method.getReturnType()));
 
             return intermediateValue;
         });
