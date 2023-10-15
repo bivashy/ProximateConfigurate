@@ -43,6 +43,17 @@ public class InterfaceObjectMapperFactory implements Factory, TypeSerializer<Obj
                 .build();
     }
 
+    public static ObjectMapper.Factory.Builder factoryBuilder() {
+        return ObjectMapper.factoryBuilder()
+                .addNodeResolver(NodeResolvers.nodeKey())
+                .addNodeResolver(NodeResolvers.keyFromSetting())
+                .addNodeResolver(NodeResolvers.nodeFromParent())
+                .addProcessor(Comment.class, Processors.comments())
+                .addConstraint(Matches.class, String.class, Constraints.pattern())
+                .addConstraint(Required.class, Constraints.required())
+                .addDiscoverer(InterfaceMethodDiscoverer.INSTANCE);
+    }
+
     public static boolean applicable(Type type) {
         return GenericTypeReflector.annotate(type).isAnnotationPresent(ConfigInterface.class);
     }
