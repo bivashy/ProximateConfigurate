@@ -6,7 +6,9 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spongepowered.configurate.BasicConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.objectmapping.ObjectMapper;
 import org.spongepowered.configurate.objectmapping.ObjectMapper.Factory;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -118,6 +120,16 @@ public class InterfaceObjectMapperFactory implements Factory, TypeSerializer<Obj
             mapper = get(type);
         }
         ((ObjectMapper<Object>) mapper).save(obj, node);
+    }
+
+    @Override
+    public @Nullable Object emptyValue(final Type specificType, final ConfigurationOptions options) {
+        try {
+            // preserve options, but don't copy defaults into temporary node
+            return get(specificType).load(BasicConfigurationNode.root(options.shouldCopyDefaults(false)));
+        } catch (final SerializationException ex) {
+            return null;
+        }
     }
 
 }
