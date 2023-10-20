@@ -27,6 +27,11 @@
                 <version>${configurate.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.spongepowered</groupId>
+                <artifactId>configurate-hocon</artifactId>
+                <version>${configurate.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.github.bivashy.configurate</groupId>
                 <artifactId>api</artifactId>
                 <version>${project.version}</version>
