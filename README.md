@@ -40,7 +40,94 @@ public interface Configuration {
 }
 ```
 
-3. **Usage**: `TODO`
+3. **Basic usage**:
+
+```java
+    HoconConfigurationLoader.builder()
+        .defaultOptions(opt -> opt.serializers(builder -> {
+            builder.register(InterfaceObjectMapperFactory::applicable,new InterfaceObjectMapperFactory());
+        }));
+        // [... other configurations ...]
+        
+    
+    ConfigurationOptions options = ConfigurationOptions.defaults().serializers(builder -> {
+        builder.register(InterfaceObjectMapperFactory::applicable, new InterfaceObjectMapperFactory());
+    });
+```
+<details>
+    <summary>Full example</summary>
+    
+```java
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.serialize.TypeSerializerCollection;
+
+import com.bivashy.configurate.objectmapping.ConfigInterface;
+import com.bivashy.configurate.objectmapping.common.InterfaceObjectMapperFactory;
+
+// For demonstration purposes
+public class HoconConfiguration {
+
+    private final ConfigurationNode root;
+
+    public HoconConfiguration(ConfigurationNode root) {
+        this.root = root;
+    }
+
+    public HoconConfiguration(File file) throws ConfigurateException {
+        this(loadConfiguration(file));
+    }
+
+    private static ConfigurationNode loadConfiguration(File file) throws ConfigurateException {
+        return HoconConfigurationLoader.builder()
+                .file(file)
+                .defaultOptions(opt -> opt.serializers(builder -> {
+                    builder
+                            .registerAll(TypeSerializerCollection.defaults())
+                            .register(InterfaceObjectMapperFactory::applicable, new InterfaceObjectMapperFactory());
+                })).build().load();
+    }
+
+    public SomeObject someObject() throws SerializationException {
+        return root.get(SomeObject.class);
+    }
+
+    @ConfigInterface
+    public interface SomeObject {
+
+        int number();
+
+        String text();
+
+        // This defines default value for 'nested'
+        default NestedObject nested() {
+            return new NestedObject() {
+                @Override
+                public List<String> textList() {
+                    return Collections.singletonList("default list");
+                }
+            };
+        }
+
+        @ConfigInterface
+        interface NestedObject {
+
+            List<String> textList();
+
+        }
+
+    }
+
+}
+```
+
+</details>
 
 4. **Result**: 
 Once you've defined your configuration interface, you can easily access and manipulate your configuration data. For example, with the above interface, the following YAML representation is generated:
