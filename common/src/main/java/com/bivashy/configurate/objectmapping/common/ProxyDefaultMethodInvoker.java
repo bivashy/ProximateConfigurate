@@ -18,6 +18,7 @@ public class ProxyDefaultMethodInvoker {
 
         MethodHandle methodHandle;
         if (javaVersion() <= 8) { // Java 8 and lower
+            // Lookup(Class)
             Constructor<Lookup> constructor = Lookup.class
                     .getDeclaredConstructor(Class.class);
             constructor.setAccessible(true);
@@ -27,7 +28,10 @@ public class ProxyDefaultMethodInvoker {
                     .unreflectSpecial(method, declaringClass)
                     .bindTo(proxy);
         } else {  // For Java 9 and above
-            methodHandle = MethodHandles.lookup().unreflectSpecial(method, declaringClass)
+            // MethodHandles.privateLookupIn(Class, Lookup)
+            Method privateLookupIn = MethodHandles.class.getMethod("privateLookupIn", Class.class, Lookup.class);
+            Lookup lookup = (Lookup) privateLookupIn.invoke(null, declaringClass, MethodHandles.lookup());
+            methodHandle = lookup.unreflectSpecial(method, declaringClass)
                     .bindTo(proxy);
         }
 
@@ -40,7 +44,7 @@ public class ProxyDefaultMethodInvoker {
 
     private static int javaVersion() {
         String versionProperty = System.getProperty("java.specification.version");
-        if(versionProperty == null)
+        if (versionProperty == null)
             return 6;
         if (versionProperty.startsWith("1.")) // 1.6, 1.7, 1.8
             return Integer.parseInt(versionProperty.substring(2));  // Extracts the 8 from 1.8
