@@ -33,7 +33,7 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
     public Object complete(Map<String, Object> intermediate) {
         return createProxy((proxy, method, args) -> {
             Object intermediateValue = intermediate.get(method.getName());
-            Optional<Object> invocationResult = chooseInvocationResult(proxy, method, args, intermediateValue);
+            Optional<Object> invocationResult = chooseInvocationResult(proxy, method, args, intermediate);
             if (invocationResult.isPresent()) {
                 return invocationResult.get();
             } else if (intermediateValue == null && method.isDefault()) {
@@ -56,7 +56,7 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
         return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, invocationHandler);
     }
 
-    private Optional<Object> chooseInvocationResult(Object proxy, Method method, Object[] args, Object intermediateValue) {
+    private Optional<Object> chooseInvocationResult(Object proxy, Method method, Object[] args, Map<String, Object> intermediateValue) {
         return invokers.stream()
                 .map(invoker -> {
                     try {
