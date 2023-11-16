@@ -47,7 +47,9 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
                                 "Interface methods should not have parameters: '" + method.toGenericString() + "'");
                     return true;
                 })
-                .invoker(MethodInvokers.toStringInvoker());
+                .invoker(MethodInvokers.toStringInvoker())
+                .invoker(MethodInvokers.equalsInvoker())
+                .invoker(MethodInvokers.hashCodeInvoker());
     }
 
     @Override
@@ -96,14 +98,6 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
                 return false;
             }
         });
-    }
-
-    @Override
-    public String toString() {
-        return "InterfaceMethodDiscoverer{" +
-                "filters=" + filters +
-                ", invokers=" + invokers +
-                '}';
     }
 
     public static final class Builder {
