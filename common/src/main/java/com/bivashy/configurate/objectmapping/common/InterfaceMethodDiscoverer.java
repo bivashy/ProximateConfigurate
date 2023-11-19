@@ -94,8 +94,7 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
             try {
                 return !filter.test(method);
             } catch (SerializationException e) {
-                e.printStackTrace();
-                return false;
+                throw new RuntimeException(e);
             }
         });
     }

@@ -40,7 +40,7 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
                 return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, method, args);
             }
 
-            if(intermediateValue == null && method.getReturnType().isPrimitive())
+            if (intermediateValue == null && method.getReturnType().isPrimitive())
                 return intermediate.computeIfAbsent(method.getName(), (ignored) -> Types.defaultValue(method.getReturnType()));
 
             return intermediateValue;
@@ -62,8 +62,7 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
                     try {
                         return invoker.invoke(proxy, method, args, intermediateValue);
                     } catch (ReflectiveOperationException e) {
-                        e.printStackTrace();
-                        return null;
+                        throw new RuntimeException(e);
                     }
                 })
                 .filter(Objects::nonNull)

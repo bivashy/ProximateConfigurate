@@ -5,10 +5,12 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.bivashy.configurate.objectmapping.common.ProxyDefaultMethodInvoker;
+import com.bivashy.configurate.objectmapping.meta.Style;
 import com.bivashy.configurate.objectmapping.proxy.ProxyMethodInvoker;
 
 public class MethodInvokers {
@@ -18,14 +20,11 @@ public class MethodInvokers {
 
     public static ProxyMethodInvoker toStringInvoker() {
         return (proxy, method, args, intermediate) -> {
-            if (!method.getName().equals("toString") || args != null && args.length != 0)
+            if (methodNotEquals(method, "toString"))
                 return null;
             try {
-                Method stringifyMethod = findUnderlyingMethod(proxy, "stringify");
-                if (!stringifyMethod.isDefault())
-                    throw new IllegalStateException("Cannot call 'stringify' on '" + Arrays.toString(proxy.getClass().getInterfaces()) +
-                            "', because 'stringify' doesn't have any 'default' implementation!");
-                return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, stringifyMethod, new Object[0]);
+                String methodName = findStyle(proxy).map(Style::toStringName).orElse("stringify");
+                return invokeDefaultMethod(proxy, methodName, new Object[0]);
             } catch (NoSuchMethodException e) {
                 StringBuilder stringBuilder = new StringBuilder();
 
@@ -43,19 +42,16 @@ public class MethodInvokers {
 
     public static ProxyMethodInvoker equalsInvoker() {
         return (proxy, method, args, intermediate) -> {
-            if (!method.getName().equals("equals") || args == null || args.length != 1 || method.getParameterTypes()[0] != Object.class)
+            if (methodNotEquals(method, "equals", Object.class))
                 return null;
             Object object = args[0];
             try {
-                Method equalToMethod = findUnderlyingMethod(proxy, "equalTo", Object.class);
-                if (!equalToMethod.isDefault())
-                    throw new IllegalStateException("Cannot call 'equalTo' on '" + Arrays.toString(proxy.getClass().getInterfaces()) +
-                            "', because 'equalTo' doesn't have any 'default' implementation!");
-                return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, equalToMethod, new Object[]{object});
+                String methodName = findStyle(proxy).map(Style::equalsName).orElse("equalTo");
+                return invokeDefaultMethod(proxy, methodName, new Object[]{object}, Object.class);
             } catch (NoSuchMethodException e) {
                 if (proxy == object)
                     return true;
-                if (!(proxy.getClass().equals(object.getClass())))
+                if (object == null || !proxy.getClass().equals(object.getClass()))
                     return false;
                 Collection<Object> objectFields = fields(object, intermediate.keySet());
                 Collection<Object> proxyFields = fields(proxy, intermediate.keySet());
@@ -66,28 +62,42 @@ public class MethodInvokers {
 
     public static ProxyMethodInvoker hashCodeInvoker() {
         return (proxy, method, args, intermediate) -> {
-            if (!method.getName().equals("hashCode") || args != null && args.length != 0)
+            if (methodNotEquals(method, "hashCode"))
                 return null;
             try {
-                Method hashMethod = findUnderlyingMethod(proxy, "hash");
-                if (!hashMethod.isDefault())
-                    throw new IllegalStateException("Cannot call 'hash' on '" + Arrays.toString(proxy.getClass().getInterfaces()) +
-                            "', because 'hash' doesn't have any 'default' implementation!");
-                return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, hashMethod, new Object[0]);
-            } catch (NoSuchMethodException e) {
+                String methodName = findStyle(proxy).map(Style::hashCodeName).orElse("hash");
+                return invokeDefaultMethod(proxy, methodName, new Object[0]);
+            } catch (NoSuchMethodException ez) {
                 return Objects.hash(fields(proxy, intermediate.keySet()));
             }
         };
     }
 
-    static Method findUnderlyingMethod(Object proxy, String methodName, Class<?>... parameterTypes) throws NoSuchMethodException {
-        for (Class<?> anInterface : proxy.getClass().getInterfaces()) {
-            try {
-                return anInterface.getDeclaredMethod(methodName, parameterTypes);
-            } catch (NoSuchMethodException ignored) {
-            }
-        }
-        throw new NoSuchMethodException();
+    static Optional<Style> findStyle(Object proxy) {
+        Class<?>[] interfaces = proxy.getClass().getInterfaces();
+        // Theoretically not possible
+        if (interfaces.length == 0)
+            return Optional.empty();
+        Class<?> clazz = interfaces[0];
+        return clazz.isAnnotationPresent(Style.class) ? Optional.of(clazz.getAnnotation(Style.class)) : Optional.empty();
+    }
+
+    static Object invokeDefaultMethod(Object proxy, String methodName, Object[] args, Class<?>... parameterTypes) throws ReflectiveOperationException {
+        Class<?>[] interfaces = proxy.getClass().getInterfaces();
+        // Theoretically not possible
+        if (interfaces.length == 0)
+            throw new NoSuchMethodException();
+        Method method = interfaces[0].getDeclaredMethod(methodName, parameterTypes);
+        if (!method.isDefault())
+            throw new IllegalStateException("Cannot call '" + methodName + "' on '" + Arrays.toString(proxy.getClass().getInterfaces()) +
+                    "', because '" + methodName + "' doesn't have 'default' keyword");
+        return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, method, args);
+    }
+
+    static boolean methodNotEquals(Method method, String methodName, Object... argumentTypes) {
+        if (method == null || !method.getName().equals(methodName))
+            return true;
+        return !Arrays.equals(method.getParameterTypes(), argumentTypes);
     }
 
     static Collection<Object> fields(Object proxy, Set<String> keys) {
