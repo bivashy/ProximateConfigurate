@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
 import org.spongepowered.configurate.serialize.SerializationException;
 
+import com.bivashy.configurate.objectmapping.common.meta.MethodInvokers;
 import com.bivashy.configurate.objectmapping.meta.Transient;
 import com.bivashy.configurate.objectmapping.proxy.ProxyMethodFilter;
 import com.bivashy.configurate.objectmapping.proxy.ProxyMethodInvoker;
@@ -45,12 +46,15 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
                         throw new SerializationException(method.getDeclaringClass(),
                                 "Interface methods should not have parameters: '" + method.toGenericString() + "'");
                     return true;
-                });
+                })
+                .invoker(MethodInvokers.toStringInvoker())
+                .invoker(MethodInvokers.equalsInvoker())
+                .invoker(MethodInvokers.hashCodeInvoker());
     }
 
     @Override
     public <V> InstanceFactory<Map<String, Object>> discover(final AnnotatedType target,
-                                                             final FieldCollector<Map<String, Object>, V> collector) throws SerializationException {
+                                                             final FieldCollector<Map<String, Object>, V> collector) {
 
         final Class<?> clazz = GenericTypeReflector.erase(target.getType());
         if (!clazz.isInterface())
@@ -90,8 +94,7 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
             try {
                 return !filter.test(method);
             } catch (SerializationException e) {
-                e.printStackTrace();
-                return false;
+                throw new RuntimeException(e);
             }
         });
     }

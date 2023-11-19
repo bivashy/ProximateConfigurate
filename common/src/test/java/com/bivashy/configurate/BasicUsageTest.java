@@ -21,7 +21,7 @@ public class BasicUsageTest {
 
     @Test
     void testConfigurationLoadFromFile() throws ConfigurateException {
-        InputStream resourceStream = getClass().getResourceAsStream("/test.conf");
+        InputStream resourceStream = getClass().getResourceAsStream("/basic-usage.conf");
         assertNotNull(resourceStream);
         final CommentedConfigurationNode node = HoconConfigurationLoader.builder()
                 .source(() -> new BufferedReader(new InputStreamReader(resourceStream)))
@@ -38,7 +38,6 @@ public class BasicUsageTest {
         assertEquals("This have default value!", object.defaultValue());
         assertNotNull(object.sub());
         assertEquals(1, object.sub().number());
-        System.out.println(node.node("sub", "numberList").getList(Double.class));
         assertEquals(Arrays.asList(0.1d, 1.3d, 3.2d), object.sub().numberList());
     }
 

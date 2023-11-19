@@ -2,6 +2,7 @@ package com.bivashy.configurate.objectmapping.proxy;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Represents an invoker for proxy methods.
@@ -23,11 +24,11 @@ public interface ProxyMethodInvoker {
      * @param proxy The proxy object the method is invoked on.
      * @param method The method to invoke.
      * @param args The arguments to pass to the method.
-     * @param intermediate An intermediate object or context for the invocation.
+     * @param intermediate An map that holds 'methodName:value'.
      * @return The result of the method invocation or {@code null} if the method should be ignored.
      * @throws ReflectiveOperationException If there is an error during reflective method invocation.
      */
-    Object invoke(Object proxy, Method method, Object[] args, Object intermediate) throws ReflectiveOperationException;
+    Object invoke(Object proxy, Method method, Object[] args, Map<String, Object> intermediate) throws ReflectiveOperationException;
 
     /**
      * Produces a new {@code ProxyMethodInvoker} that only invokes methods annotated with the specified annotation.

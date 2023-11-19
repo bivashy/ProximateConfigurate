@@ -33,14 +33,14 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
     public Object complete(Map<String, Object> intermediate) {
         return createProxy((proxy, method, args) -> {
             Object intermediateValue = intermediate.get(method.getName());
-            Optional<Object> invocationResult = chooseInvocationResult(proxy, method, args, intermediateValue);
+            Optional<Object> invocationResult = chooseInvocationResult(proxy, method, args, intermediate);
             if (invocationResult.isPresent()) {
                 return invocationResult.get();
             } else if (intermediateValue == null && method.isDefault()) {
                 return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, method, args);
             }
 
-            if(intermediateValue == null && method.getReturnType().isPrimitive())
+            if (intermediateValue == null && method.getReturnType().isPrimitive())
                 return intermediate.computeIfAbsent(method.getName(), (ignored) -> Types.defaultValue(method.getReturnType()));
 
             return intermediateValue;
@@ -56,14 +56,13 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
         return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, invocationHandler);
     }
 
-    private Optional<Object> chooseInvocationResult(Object proxy, Method method, Object[] args, Object intermediateValue) {
+    private Optional<Object> chooseInvocationResult(Object proxy, Method method, Object[] args, Map<String, Object> intermediateValue) {
         return invokers.stream()
                 .map(invoker -> {
                     try {
                         return invoker.invoke(proxy, method, args, intermediateValue);
                     } catch (ReflectiveOperationException e) {
-                        e.printStackTrace();
-                        return null;
+                        throw new RuntimeException(e);
                     }
                 })
                 .filter(Objects::nonNull)

@@ -147,6 +147,53 @@ ProximateConfigurate simplifies your configuration management by allowing you to
 ### Gradle
 `TODO`
 
+## Useful features
+<details>
+    <summary>Auto-generated <code>toString()</code>, <code>hashCode()</code>, <code>equals(Object)</code></summary>
+
+Model: 
+```java
+@ConfigInterface
+public interface ComplexConfiguration {
+
+    String value();
+
+    default String defaultValue() {
+        return "This have default value!";
+    }
+
+    SubComplexConfiguration sub();
+
+    @ConfigInterface
+    interface SubComplexConfiguration {
+
+        int number();
+
+        List<Double> numberList();
+
+    }
+
+}
+```
+```java
+public class PrintExample {
+
+    void print() {
+        ComplexConfiguration object = node.get(ComplexConfiguration.class);
+        System.out.println(object); // [interface com.bivashy.configurate.BasicUsageTest$ComplexConfiguration]{sub=[interface com.bivashy.configurate.BasicUsageTest$ComplexConfiguration$SubComplexConfiguration]{number=1, numberList=[0.1, 1.3, 3.2]}, defaultValue=null, value=test}
+
+    }
+
+}
+```
+Output of <code>PrintExample#print():</code>
+```
+[interface com.bivashy.configurate.BasicUsageTest$ComplexConfiguration]{sub=[interface com.bivashy.configurate.BasicUsageTest$ComplexConfiguration$SubComplexConfiguration]{number=1, numberList=[0.1, 1.3, 3.2]}, defaultValue=null, value=test}
+```
+
+</details>
+    
+
 ## Contributing
 We welcome contributions to ProximateConfigurate! If you have ideas for improvements or encounter issues, please feel free to open an issue or submit a pull request on the [repository](https://github.com/bivashy/ProximateConfigurate).
 
