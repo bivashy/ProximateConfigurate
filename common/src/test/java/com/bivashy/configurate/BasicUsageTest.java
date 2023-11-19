@@ -21,7 +21,7 @@ public class BasicUsageTest {
 
     @Test
     void testConfigurationLoadFromFile() throws ConfigurateException {
-        InputStream resourceStream = getClass().getResourceAsStream("/test.conf");
+        InputStream resourceStream = getClass().getResourceAsStream("/basic-usage.conf");
         assertNotNull(resourceStream);
         final CommentedConfigurationNode node = HoconConfigurationLoader.builder()
                 .source(() -> new BufferedReader(new InputStreamReader(resourceStream)))
