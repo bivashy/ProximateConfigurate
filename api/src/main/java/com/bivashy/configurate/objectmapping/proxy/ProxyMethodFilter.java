@@ -1,6 +1,8 @@
 package com.bivashy.configurate.objectmapping.proxy;
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
+
 import org.spongepowered.configurate.serialize.SerializationException;
 
 /**
@@ -15,16 +17,18 @@ public interface ProxyMethodFilter {
      *
      * <p>For example, to ignore <b>synthetic</b> methods, one can use:</p>
      * <pre>
-     * ProxyMethodFilter filter = method -> !method.isSynthetic();
+     * ProxyMethodFilter filter = (method, type) ->
+     *      !method.isSynthetic();
      * </pre>
      *
      * <p>In the above example, the filter will exclude synthetic methods from further processing.</p>
      *
      * @param method The method from the interface to evaluate.
+     * @param type The annotated type use of the method to evaluate.
      * @return {@code true} if the method should be processed further, {@code false} if it should be ignored.
      * @throws SerializationException If the method has invalid syntax or cannot be evaluated.
      */
-    boolean test(Method method) throws SerializationException;
+    boolean test(Method method, AnnotatedType type) throws SerializationException;
 
     /**
      * Returns a new {@code ProxyMethodFilter} that negates the result of this filter.
@@ -34,6 +38,6 @@ public interface ProxyMethodFilter {
      * @return A new filter that negates the result of this filter.
      */
     default ProxyMethodFilter reverse() {
-        return (method) -> !this.test(method);
+        return (method, type) -> !this.test(method, type);
     }
 }
