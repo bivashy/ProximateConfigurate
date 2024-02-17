@@ -18,6 +18,19 @@ public class MethodInvokers {
     private MethodInvokers() {
     }
 
+    public static ProxyMethodInvoker setterInvoker() {
+        return (proxy, method, args, intermediate) -> {
+            if (args == null || args.length != 1)
+                return null;
+            Class<?> returnType = method.getReturnType();
+            if (!returnType.equals(proxy.getClass()) && !returnType.equals(void.class))
+                return null;
+            Object argument = args[0];
+            intermediate.put(method.getName(), argument);
+            return proxy;
+        };
+    }
+
     public static ProxyMethodInvoker toStringInvoker() {
         return (proxy, method, args, intermediate) -> {
             if (methodNotEquals(method, "toString"))
