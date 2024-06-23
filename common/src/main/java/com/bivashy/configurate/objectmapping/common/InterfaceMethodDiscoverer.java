@@ -38,15 +38,22 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
     }
 
     public static Builder defaultBuilder() {
-        return builder().reverseFilter(Method::isSynthetic)
-                .reverseFilter(method -> Modifier.isStatic(method.getModifiers()))
-                .filter(method -> !method.isDefault() || !method.isAnnotationPresent(Transient.class))
-                .filter(method -> {
+        return builder().reverseFilter((method, ignored) -> method.isSynthetic())
+                .reverseFilter((method, type) -> Modifier.isStatic(method.getModifiers()))
+                .filter((method, type) -> !method.isDefault() || !method.isAnnotationPresent(Transient.class))
+                .filter((method, type) -> {
+                    AnnotatedType returnType = GenericTypeReflector.getReturnType(method, type);
+                    if (method.getParameterCount() == 1) {
+                        // Return true to skip methods if returnType is void or matches the method's declaring type, avoiding SerializationException.
+                        if (GenericTypeReflector.equals(returnType, type) || GenericTypeReflector.equals(returnType, GenericTypeReflector.annotate(Void.TYPE)))
+                            return false;
+                    }
                     if (method.getParameterCount() != 0 && !method.isDefault())
                         throw new SerializationException(method.getDeclaringClass(),
                                 "Interface methods should not have parameters: '" + method.toGenericString() + "'");
                     return true;
                 })
+                .invoker(MethodInvokers.setterInvoker())
                 .invoker(MethodInvokers.toStringInvoker())
                 .invoker(MethodInvokers.equalsInvoker())
                 .invoker(MethodInvokers.hashCodeInvoker());
@@ -72,7 +79,7 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
         for (Method method : GenericTypeReflector.erase(type.getType()).getDeclaredMethods()) {
             final String name = method.getName();
 
-            if (shouldBeIgnored(method))
+            if (shouldBeIgnored(method, type))
                 continue;
 
             final AnnotatedType returnType = GenericTypeReflector.getReturnType(method, type);
@@ -89,10 +96,10 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
                 .collect(Collectors.toList());
     }
 
-    private boolean shouldBeIgnored(Method method) {
+    private boolean shouldBeIgnored(Method method, AnnotatedType type) {
         return filters.stream().anyMatch(filter -> {
             try {
-                return !filter.test(method);
+                return !filter.test(method, type);
             } catch (SerializationException e) {
                 throw new RuntimeException(e);
             }
