@@ -11,11 +11,22 @@ import java.util.stream.Collectors;
 
 import com.bivashy.configurate.objectmapping.common.ProxyDefaultMethodInvoker;
 import com.bivashy.configurate.objectmapping.meta.Style;
+import com.bivashy.configurate.objectmapping.meta.Transient;
 import com.bivashy.configurate.objectmapping.proxy.ProxyMethodInvoker;
 
 public class MethodInvokers {
 
     private MethodInvokers() {
+    }
+
+    public static ProxyMethodInvoker transientDefaultInvoker() {
+        return (proxy, method, args, intermediate) -> {
+            if(!method.isDefault())
+                return null;
+            if (!method.isAnnotationPresent(Transient.class))
+                return null;
+            return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, method, args);
+        };
     }
 
     public static ProxyMethodInvoker setterInvoker() {

@@ -53,6 +53,7 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
                                 "Interface methods should not have parameters: '" + method.toGenericString() + "'");
                     return true;
                 })
+                .invoker(MethodInvokers.transientDefaultInvoker())
                 .invoker(MethodInvokers.setterInvoker())
                 .invoker(MethodInvokers.toStringInvoker())
                 .invoker(MethodInvokers.equalsInvoker())
