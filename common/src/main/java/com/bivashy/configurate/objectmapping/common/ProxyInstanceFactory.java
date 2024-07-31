@@ -34,11 +34,12 @@ class ProxyInstanceFactory implements InstanceFactory<Map<String, Object>> {
         return createProxy((proxy, method, args) -> {
             Object intermediateValue = intermediate.get(method.getName());
             Optional<Object> invocationResult = chooseInvocationResult(proxy, method, args, intermediate);
-            if (invocationResult.isPresent()) {
+
+            if (invocationResult.isPresent())
                 return invocationResult.get();
-            } else if (intermediateValue == null && method.isDefault()) {
+
+            if (intermediateValue == null && method.isDefault())
                 return ProxyDefaultMethodInvoker.invokeDefaultMethod(proxy, method, args);
-            }
 
             if (intermediateValue == null && method.getReturnType().isPrimitive())
                 return intermediate.computeIfAbsent(method.getName(), (ignored) -> Types.defaultValue(method.getReturnType()));
