@@ -85,9 +85,10 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
             final String name = method.getName();
 
             MethodAdapter adapter = new MethodAdapter(method, type.getType());
-            if (duplicateMethods.contains(adapter))
+
+            boolean added = duplicateMethods.add(adapter);
+            if (!added)
                 continue;
-            duplicateMethods.add(adapter);
             if (shouldBeIgnored(method, type))
                 continue;
 
