@@ -7,8 +7,10 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,18 +70,25 @@ final class InterfaceMethodDiscoverer implements FieldDiscoverer<Map<String, Obj
         if (!clazz.isInterface())
             return null;
 
-        collectMethods(target, collector);
+        // duplicateMethods prevents processing of overridden methods
+        Set<MethodAdapter> duplicateMethods = new HashSet<>();
+        collectMethods(target, collector, duplicateMethods);
         for (AnnotatedType superType : getInterfaces(target, clazz)) {
-            collectMethods(superType, collector);
+            collectMethods(superType, collector, duplicateMethods);
         }
 
         return new ProxyInstanceFactory(clazz, invokers);
     }
 
-    private <V> void collectMethods(AnnotatedType type, final FieldCollector<Map<String, Object>, V> collector) {
+    private <V> void collectMethods(AnnotatedType type, final FieldCollector<Map<String, Object>, V> collector, Set<MethodAdapter> duplicateMethods) {
         for (Method method : GenericTypeReflector.erase(type.getType()).getDeclaredMethods()) {
             final String name = method.getName();
 
+            MethodAdapter adapter = new MethodAdapter(method, type.getType());
+
+            boolean added = duplicateMethods.add(adapter);
+            if (!added)
+                continue;
             if (shouldBeIgnored(method, type))
                 continue;
 
