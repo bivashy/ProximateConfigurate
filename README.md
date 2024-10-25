@@ -142,10 +142,23 @@ You can then access the `joinFields` method to produce output: `Hello 4`.
 ProximateConfigurate simplifies your configuration management by allowing you to work with clean and compact interfaces, making your code more maintainable and intuitive.
 
 ### Maven
-`TODO`
+```xml
+<dependency>
+    <groupId>io.github.bivashy</groupId>
+    <artifactId>proximate-configurate</artifactId>
+    <version>0.0.1</version>
+</dependency>
+```
 
 ### Gradle
-`TODO`
+```groovy
+implementation group: 'io.github.bivashy', name: 'proximate-configurate', version: '0.0.1'
+```
+
+### Gradle (Kotlin)
+```groovy
+implementation("io.github.bivashy:proximate-configurate:0.0.1")
+```
 
 ## Useful features
 <details>
