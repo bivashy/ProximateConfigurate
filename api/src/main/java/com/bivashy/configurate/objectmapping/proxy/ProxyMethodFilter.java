@@ -15,14 +15,6 @@ public interface ProxyMethodFilter {
     /**
      * Evaluates the given method to determine if it should be processed or ignored.
      *
-     * <p>For example, to ignore <b>synthetic</b> methods, one can use:</p>
-     * <pre>
-     * ProxyMethodFilter filter = (method, type) ->
-     *      !method.isSynthetic();
-     * </pre>
-     *
-     * <p>In the above example, the filter will exclude synthetic methods from further processing.</p>
-     *
      * @param method The method from the interface to evaluate.
      * @param type The annotated type use of the method to evaluate.
      * @return {@code true} if the method should be processed further, {@code false} if it should be ignored.
