@@ -19,8 +19,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.bivashy.configurate</groupId>
-            <artifactId>api</artifactId>
+            <groupId>io.github.bivashy</groupId>
+            <artifactId>proximate-configurate-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
