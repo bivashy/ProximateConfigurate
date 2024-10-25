@@ -20,10 +20,19 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Style {
 
+    /**
+     * Name for alternative `toString()` name.
+     */
     String toStringName() default "stringify";
 
+    /**
+     * Name for alternative `equals()` name.
+     */
     String equalsName() default "equalTo";
 
+    /**
+     * Name for alternative `hashCode()` name.
+     */
     String hashCodeName() default "hash";
 
 }

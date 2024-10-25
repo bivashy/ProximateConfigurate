@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Indicates that the given type is capable of being serialized and deserialized
  * by an object mapper.
  *
- * <p>Types with this annotation must be interface.<p/>
+ * <p>Types with this annotation must be interface.</p>
  *
  * @since 0.0.0
  */

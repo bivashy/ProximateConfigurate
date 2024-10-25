@@ -4,13 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>common</artifactId>
-    <version>0.0.0</version>
+    <artifactId>proximate-configurate-common</artifactId>
 
     <parent>
-        <groupId>com.github.bivashy.configurate</groupId>
-        <artifactId>ProximateConfigurate</artifactId>
-        <version>0.0.0</version>
+        <groupId>io.github.bivashy</groupId>
+        <artifactId>proximate-configurate</artifactId>
+        <version>0.0.1</version>
     </parent>
 
     <dependencies>
